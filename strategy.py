@@ -83,21 +83,24 @@ def get_watchlist():
 
 
 # Combined strategy (momentum, volume, moving average)
-def combined_strategy(api):
+def combined_strategy(api, positions):
     print("Working...")
 
     watchlist = get_watchlist()
+    # Don't buy more of my current positions
+    use_watchlist = [w for w in watchlist if not any(w == p.symbol for p in positions)]
+
 
     # Picking momentum and volume-based stocks
-    momentum_stocks = pick_stocks_based_on_momentum(watchlist, api)
-    volume_stocks = pick_stocks_based_on_volume(watchlist, api)
+    momentum_stocks = pick_stocks_based_on_momentum(use_watchlist, api)
+    volume_stocks = pick_stocks_based_on_volume(use_watchlist, api)
 
     # Combining both lists and filtering based on moving average
     trade_candidates = list(set(momentum_stocks) | set(volume_stocks))
     print(f"Momentum and Volume Stocks: {trade_candidates}")
 
     # Filtering stocks based on simple moving average strategy
-    selected_stocks = [stock for stock in trade_candidates if simple_moving_average(api, stock)]
+    selected_stocks = [(stock, 1) for stock in trade_candidates if simple_moving_average(api, stock)]
     print(f"Selected Stocks for Trading: {selected_stocks}")
 
     return selected_stocks
